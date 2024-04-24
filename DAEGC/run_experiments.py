@@ -93,15 +93,19 @@ for n_clusters in [6]:
                                             yaml.dump(config, f)
                                         p = subprocess.run(
                                             ["python3", "pretrain.py"],
+                                            stdout=subprocess.PIPE,
                                             stderr=subprocess.PIPE,
                                             text=True,
                                         )
-                                        print(p.stderr)
-                                        print(p.returncode)
+                                        if p != 0:
+                                            print(p.stdout)
+                                            print(p.stderr)
                                         if p.returncode == 0:
                                             p = subprocess.run(
                                                 ["python3", "daegc.py"],
                                                 stderr=subprocess.PIPE,
                                                 text=True,
                                             )
-                                        print(p.stderr)
+                                        if p != 0:
+                                            print(p.stdout)
+                                            print(p.stderr)
