@@ -1,3 +1,4 @@
+import os
 import argparse
 import numpy as np
 import wandb
@@ -43,9 +44,11 @@ def pretrain(dataset, config):
     )
 
     model_arch = str(model)
-    arch_file = open("model_archs/gat_pretrain/gat_model_arch.txt", "w")
-    file_write = arch_file.write(model_arch)
-    arch_file.close()
+    model_arch_dir = os.path.join("model_archs", "gat_pretrain")
+    if not os.path.exists(model_arch_dir):
+        os.makedirs(model_arch_dir)
+    with open("model_archs/gat_pretrain/gat_model_arch.txt", "w") as f:
+        f.write(model_arch)
     wandb.save("model_archs/gat_pretrain/gat_model_arch.txt")
 
     # data process
