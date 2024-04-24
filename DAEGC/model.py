@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from typing import List
 
 from layer import GATLayer
 
@@ -9,7 +10,7 @@ class GAT(nn.Module):
     def __init__(
         self,
         num_features: int,
-        hidden_sizes: list[int],
+        hidden_sizes: List[int],
         embedding_size: int,
         num_gat_layers: int,
         num_heads: int,

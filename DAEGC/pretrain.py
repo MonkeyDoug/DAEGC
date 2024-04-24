@@ -1,5 +1,7 @@
 import argparse
 import numpy as np
+import wandb
+import yaml
 
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import normalize
@@ -16,17 +18,35 @@ from model import GAT
 from evaluation import eva
 
 
-def pretrain(dataset):
+def pretrain(dataset, config):
     model = GAT(
-        num_features=dataset.num_features,
-        hidden_sizes=[256, 16],
-        embedding_size=16,
-        alpha=0.2,
-        num_heads=1,
-        num_gat_layers=2,
+        num_features=config['input_dim'],
+        hidden_sizes=config['hidden_sizes'],
+        embedding_size=config['embedding_size'],
+        alpha=config['alpha'],
+        num_heads=config['num_heads'],
+        num_gat_layers=config['num_gat_layers'],
     ).to(device)
     print(model)
-    optimizer = Adam(model.parameters(), lr=0.005, weight_decay=5e-3)
+
+    optimizer = Adam(model.parameters(), lr=config['pre_lr'], weight_decay=float(config['weight_decay']))
+
+    run_name = f'GAT PRETRAIN Model INPUT_DIM: {config["input_dim"]} HIDDEN_DIM: {config["hidden_sizes"]} EMBEDDING_DIM: {config["embedding_size"]} ALPHA: {config["alpha"]} NUM_GAT LAYERS: {config["num_gat_layers"]} NUM_HEADS: {config["num_heads"]}'
+
+    wandb.login(key="57127ebf2a35438d2137d5bed09ca5e4c5191ab9", relogin=True)
+
+    run = wandb.init(
+        name=run_name,
+        reinit=True,
+        project="10701-Project",
+        config=config
+    )
+
+    model_arch = str(model)
+    arch_file = open("model_archs/gat_pretrain/gat_model_arch.txt", "w")
+    file_write = arch_file.write(model_arch)
+    arch_file.close()
+    wandb.save("model_archs/gat_pretrain/gat_model_arch.txt")
 
     # data process
     dataset = utils.data_preprocessing(dataset)
@@ -38,7 +58,9 @@ def pretrain(dataset):
     x = torch.Tensor(dataset.x).to(device)
     y = dataset.y.cpu().numpy()
 
-    for epoch in range(100):
+    for epoch in range(config['max_epoch']):
+        curr_lr = float(optimizer.param_groups[0]["lr"])
+
         model.train()
         A_pred, z = model(x, adj, M)
         loss = F.binary_cross_entropy(A_pred.view(-1), adj_label.view(-1))
@@ -48,57 +70,45 @@ def pretrain(dataset):
 
         with torch.no_grad():
             _, z = model(x, adj, M)
-            kmeans = KMeans(n_clusters=args.n_clusters, n_init=20).fit(
+            kmeans = KMeans(n_clusters=config['n_clusters'], n_init=20).fit(
                 z.data.cpu().numpy()
             )
             acc, nmi, ari, f1 = eva(y, kmeans.labels_, epoch)
+
+            wandb.log({"accuracy": acc,
+                       "nmi": nmi,
+                       "ari": ari,
+                       "f1": f1,
+                       "loss": loss,
+                       "learning_rate": curr_lr})
+
         if epoch % 5 == 0:
             torch.save(
-                model.state_dict(), f"./pretrain/predaegc_{args.name}_{epoch}.pkl"
+                model.state_dict(), f"./pretrain/predaegc_{config['dataset']}_{epoch}.pkl"
             )
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="train", formatter_class=argparse.ArgumentDefaultsHelpFormatter
-    )
-    parser.add_argument("--name", type=str, default="Citeseer")
-    parser.add_argument("--max_epoch", type=int, default=100)
-    parser.add_argument("--lr", type=float, default=0.001)
-    parser.add_argument("--n_clusters", default=6, type=int)
-    parser.add_argument("--hidden_size", default=256, type=int)
-    parser.add_argument("--embedding_size", default=16, type=int)
-    parser.add_argument("--weight_decay", type=int, default=5e-3)
-    parser.add_argument(
-        "--alpha", type=float, default=0.2, help="Alpha for the leaky_relu."
-    )
-    args = parser.parse_args()
-    args.cuda = torch.cuda.is_available()
-    print("use cuda: {}".format(args.cuda))
-    device = torch.device("cuda" if args.cuda else "cpu")
-    
-    datasets = utils.get_dataset(args.name)
+    with open("config.yaml") as file:
+        config = yaml.safe_load(file)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(device)
+
+    datasets = utils.get_dataset(config['dataset'])
     dataset = datasets[0]
+
+    if config['dataset'] == 'Citeseer':
+        config['pre_lr'] = 0.005
+        config['n_clusters'] = 6
+    elif config['dataset'] == 'Cora':
+        config['pre_lr'] = 0.005
+        config['n_clusters'] = 7
+    elif config['dataset'] == "Pubmed":
+        config['pre_lr'] = 0.001
+        config['n_clusters'] = 3
     
-    if args.name == "Citeseer":
-        args.lr = 0.005
-        args.k = None
-        args.n_clusters = 6
-    elif args.name == "Cora":
-        args.lr = 0.005
-        args.k = None
-        args.n_clusters = 7
-    elif args.name == "Pubmed":
-        args.lr = 0.001
-        args.k = None
-        args.n_clusters = 3
-    else:
-        args.k = None
+    config['input_dim'] = dataset.num_features
     
-    args.input_dim = dataset.num_features
-    
-    print(args)
-    datasets = utils.get_dataset("Citeseer")
-    dataset = datasets[0]
-    device = torch.device("cuda")
-    pretrain(dataset)
+    print(config)
+    pretrain(dataset, config)

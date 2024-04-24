@@ -1,0 +1,24 @@
+dataset : "Citeseer"
+
+epoch : 20
+max_epoch: 100
+
+### PRETRAIN PARAMS ###
+pre_lr: 0.005 # [0.001, 0.005]
+
+lr : 0.0001
+n_clusters: 6 #  [3, 6, 7]
+update_interval: 1 # [1, 3, 5]
+
+
+### MODEL PARAMS ###
+hidden_sizes:
+  - 256
+  - 16
+embedding_size: 16
+weight_decay: 5E-3
+alpha: 0.2
+num_heads: 2
+num_gat_layers: 2
+
+
