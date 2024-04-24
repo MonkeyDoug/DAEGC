@@ -152,6 +152,9 @@ def trainer(dataset, config):
 
 
 if __name__ == "__main__":
+    # uncomment below to download PubMed"
+    # dataset = Planetoid(root='dataset', name="PubMed")
+
     with open("config.yaml") as file:
         config = yaml.safe_load(file)
 
