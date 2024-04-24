@@ -103,6 +103,7 @@ if __name__ == "__main__":
     parser.add_argument('--embedding_size', default=16, type=int)
     parser.add_argument('--num_gat_layers', default=2, type=int)
     parser.add_argument('--num_heads', default=1, type=int)
+    parser.add_argument('--weight_decay', type=int, default=5e-3)
     parser.add_argument('--alpha', type=float, default=0.2, help='Alpha for the leaky_relu.')
     args = parser.parse_args()
     args.cuda = torch.cuda.is_available()
