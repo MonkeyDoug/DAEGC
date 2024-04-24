@@ -1,4 +1,5 @@
 import yaml
+import subprocess
 
 config = {
     "dataset": "Citeseer",
@@ -60,7 +61,7 @@ num_configs = 0
 for n_clusters in [6]:
     for update_interval in range(1, 8, 2):
         for max_epoch in range(100, 201, 100):
-            for epoch in range(50, 101, 50):
+            for epoch in [25, 50]:
                 for num_heads in range(1, 5):
                     for alpha in [i / 100.0 for i in range(10, 31, 10)]:
                         for pre_lr in [0.005]:
@@ -72,6 +73,7 @@ for n_clusters in [6]:
                                         if len(hidden_size) < MAX_GAT_LAYERS
                                     ]
                                     for curr_hidden_size in curr_hidden_sizes:
+                                        print(config)
                                         config = {
                                             "dataset": "Citeseer",
                                             "epoch": epoch,
@@ -87,10 +89,17 @@ for n_clusters in [6]:
                                             "num_heads": num_heads,
                                             "num_gat_layers": len(curr_hidden_size),
                                         }
-                                        num_configs += 1
-                                        print(num_configs)
-print(num_configs)
-print(all_configs)
-print(len(all_configs))
-
-# with open("config.yaml", "r+") as f:
+                                        with open("config.yaml", "w") as f:
+                                            yaml.dump(config, f)
+                                        p = subprocess.run(
+                                            ["python3", "pretrain.py"],
+                                            stdout=subprocess.PIPE,
+                                            stderr=subprocess.PIPE,
+                                            text=True,
+                                        )
+                                        p = subprocess.run(
+                                            ["python3", "daegc.py"],
+                                            stdout=subprocess.PIPE,
+                                            stderr=subprocess.PIPE,
+                                            text=True,
+                                        )

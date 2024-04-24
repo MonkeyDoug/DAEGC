@@ -61,7 +61,7 @@ def pretrain(dataset, config):
     x = torch.Tensor(dataset.x).to(device)
     y = dataset.y.cpu().numpy()
 
-    for epoch in range(config['max_epoch']):
+    for epoch in range(config['epoch'] + 1):
         curr_lr = float(optimizer.param_groups[0]["lr"])
 
         model.train()
@@ -71,21 +71,23 @@ def pretrain(dataset, config):
         loss.backward()
         optimizer.step()
 
-        with torch.no_grad():
-            _, z = model(x, adj, M)
-            kmeans = KMeans(n_clusters=config['n_clusters'], n_init=20).fit(
-                z.data.cpu().numpy()
-            )
-            acc, nmi, ari, f1 = eva(y, kmeans.labels_, epoch)
-
-            wandb.log({"accuracy": acc,
-                       "nmi": nmi,
-                       "ari": ari,
-                       "f1": f1,
-                       "loss": loss,
-                       "learning_rate": curr_lr})
-
         if epoch % 5 == 0:
+            model.eval()
+            with torch.no_grad():
+                _, z = model(x, adj, M)
+                kmeans = KMeans(n_clusters=config['n_clusters'], n_init=20).fit(
+                    z.data.cpu().numpy()
+                )
+                acc, nmi, ari, f1 = eva(y, kmeans.labels_, epoch)
+
+                wandb.log({"accuracy": acc,
+                           "nmi": nmi,
+                           "ari": ari,
+                           "f1": f1,
+                           "loss": loss,
+                           "learning_rate": curr_lr})
+
+        if epoch == config['epoch']:
             torch.save(
                 model.state_dict(), f"./pretrain/predaegc_{config['dataset']}_{epoch}.pkl"
             )
