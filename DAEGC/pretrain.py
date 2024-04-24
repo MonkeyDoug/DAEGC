@@ -85,9 +85,11 @@ def pretrain(dataset, config):
                            "ari": ari,
                            "f1": f1,
                            "loss": loss,
-                           "learning_rate": curr_lr})
+                           "learning_rate": curr_lr}, step=epoch)
 
         if epoch == config['epoch']:
+            if not os.path.exists("pretrain"):
+                os.makedirs("pretrain")
             torch.save(
                 model.state_dict(), f"./pretrain/predaegc_{config['dataset']}_{epoch}.pkl"
             )

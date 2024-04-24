@@ -131,7 +131,7 @@ def trainer(dataset, config):
             q = Q.detach().data.cpu().numpy().argmax(1)  # Q
             acc, nmi, ari, f1 = eva(y, q, epoch)
 
-            wandb.log({"accuracy": acc, "nmi": nmi, "ari": ari, "f1": f1})
+            wandb.log({"accuracy": acc, "nmi": nmi, "ari": ari, "f1": f1}, step=epoch)
 
         A_pred, z, q = model(data, adj, M)
         p = target_distribution(Q.detach())
@@ -141,7 +141,7 @@ def trainer(dataset, config):
 
         loss = 10 * kl_loss + re_loss
 
-        wandb.log({"loss": loss, "learning_rate": curr_lr})
+        wandb.log({"loss": loss, "learning_rate": curr_lr}, step=epoch)
 
         optimizer.zero_grad()
         loss.backward()
