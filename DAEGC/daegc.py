@@ -85,7 +85,7 @@ def trainer(dataset, config):
     # wandb configurations
     run_name = f'DAEGC Model INPUT_DIM: {config["input_dim"]} HIDDEN_DIM: {config["hidden_sizes"]} EMBEDDING_DIM: {config["embedding_size"]} ALPHA: {config["alpha"]} NUM_GAT LAYERS: {config["num_gat_layers"]} NUM_HEADS: {config["num_heads"]}'
 
-    wandb.login(key="57127ebf2a35438d2137d5bed09ca5e4c5191ab9", relogin=True)
+    wandb.login(key="", relogin=True)
 
     run = wandb.init(name=run_name, reinit=True, project="10701-Project", config=config, tags=["DAEGC"])
 
@@ -100,6 +100,8 @@ def trainer(dataset, config):
     optimizer = Adam(
         model.parameters(), lr=config["lr"], weight_decay=float(config["weight_decay"])
     )
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max',
+                                                           factor=0.5, patience=2, min_lr=1E-8)
 
     # data process
     dataset = utils.data_preprocessing(dataset)
@@ -146,6 +148,7 @@ def trainer(dataset, config):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+        scheduler.step(acc)
 
 
 if __name__ == "__main__":
@@ -169,7 +172,7 @@ if __name__ == "__main__":
         config["n_clusters"] = 3
 
     e, dataset_name = config["epoch"], config["dataset"]
-    config["pretrain_path"] = f"./pretrain/predaegc_{dataset_name}_{e}.pkl"
+    config["pretrain_path"] = f"./pretrain/predaegc_best_model.pkl"
     config["input_dim"] = dataset.num_features
 
     print(config)

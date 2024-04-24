@@ -11,7 +11,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.parameter import Parameter
-from torch.optim import Adam
+from torch.optim import Adam, AdamW
 
 import utils
 from model import GAT
@@ -30,11 +30,14 @@ def pretrain(dataset, config):
     ).to(device)
     print(model)
 
-    optimizer = Adam(model.parameters(), lr=config['pre_lr'], weight_decay=float(config['weight_decay']))
+    optimizer = AdamW(model.parameters(), lr=config['pre_lr'], weight_decay=float(config['weight_decay']))
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min',
+                factor=0.5, patience=2, min_lr=1E-8)
+
 
     run_name = f'GAT PRETRAIN Model INPUT_DIM: {config["input_dim"]} HIDDEN_DIM: {config["hidden_sizes"]} EMBEDDING_DIM: {config["embedding_size"]} ALPHA: {config["alpha"]} NUM_GAT LAYERS: {config["num_gat_layers"]} NUM_HEADS: {config["num_heads"]}'
 
-    wandb.login(key="57127ebf2a35438d2137d5bed09ca5e4c5191ab9", relogin=True)
+    wandb.login(key="", relogin=True)
 
     run = wandb.init(
         name=run_name,
@@ -62,7 +65,9 @@ def pretrain(dataset, config):
     x = torch.Tensor(dataset.x).to(device)
     y = dataset.y.cpu().numpy()
 
-    for epoch in range(config['epoch'] + 1):
+    best_acc = 0.0
+
+    for epoch in range(config['max_epoch']):
         curr_lr = float(optimizer.param_groups[0]["lr"])
 
         model.train()
@@ -71,9 +76,10 @@ def pretrain(dataset, config):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+        scheduler.step(loss)
 
         if epoch % 5 == 0:
-            model.eval()
+            # model.eval()
             with torch.no_grad():
                 _, z = model(x, adj, M)
                 kmeans = KMeans(n_clusters=config['n_clusters'], n_init=20).fit(
@@ -88,15 +94,21 @@ def pretrain(dataset, config):
                            "loss": loss,
                            "learning_rate": curr_lr}, step=epoch)
 
-        if epoch == config['epoch']:
-            if not os.path.exists("pretrain"):
-                os.makedirs("pretrain")
-            torch.save(
-                model.state_dict(), f"./pretrain/predaegc_{config['dataset']}_{epoch}.pkl"
-            )
+                if acc > best_acc:
+                    best_acc = acc
+
+                    if not os.path.exists("pretrain"):
+                        os.makedirs("pretrain")
+                    torch.save(
+                        model.state_dict(), f"./pretrain/predaegc_best_model.pkl"
+                    )
+
+    print(f"best model has {best_acc} accuracy")
 
 
 if __name__ == "__main__":
+
+
     with open("config.yaml") as file:
         config = yaml.safe_load(file)
 
