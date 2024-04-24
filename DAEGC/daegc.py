@@ -87,7 +87,7 @@ def trainer(dataset, config):
 
     wandb.login(key="57127ebf2a35438d2137d5bed09ca5e4c5191ab9", relogin=True)
 
-    run = wandb.init(name=run_name, reinit=True, project="10701-Project", config=config)
+    run = wandb.init(name=run_name, reinit=True, project="10701-Project", config=config, tags=["DAEGC"])
 
     model_arch = str(model)
     model_arch_dir = os.path.join("model_archs", "daegc")

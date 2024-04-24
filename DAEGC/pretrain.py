@@ -40,7 +40,8 @@ def pretrain(dataset, config):
         name=run_name,
         reinit=True,
         project="10701-Project",
-        config=config
+        config=config,
+        tags=["GAT"]
     )
 
     model_arch = str(model)
