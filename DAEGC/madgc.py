@@ -23,6 +23,7 @@ class MADGC(nn.Module):
         self.num_clusters = num_clusters
         self.v = v
         self.gat = GAT(num_features, hidden_sizes, embedding_size, num_gat_layers, num_heads, alpha)
+        self.gat.load_state_dict(torch.load(args.pretrain_path, map_location='cpu'))
         self.cluster_layer = Parameter(torch.Tensor(num_clusters, embedding_size))
         torch.nn.init.xavier_normal_(self.cluster_layer.data)
 
