@@ -43,7 +43,7 @@ def pretrain(dataset, config):
 
     run_name = f'GAT PRETRAIN Model INPUT_DIM: {config["input_dim"]} HIDDEN_DIM: {config["hidden_sizes"]} EMBEDDING_DIM: {config["embedding_size"]} ALPHA: {config["alpha"]} NUM_GAT LAYERS: {config["num_gat_layers"]} NUM_HEADS: {config["num_heads"]}'
 
-    wandb.login(key="", relogin=True)
+    wandb.login(key="57127ebf2a35438d2137d5bed09ca5e4c5191ab9", relogin=True)
 
     run = wandb.init(
         name=run_name,

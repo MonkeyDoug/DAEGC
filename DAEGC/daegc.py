@@ -94,9 +94,15 @@ def trainer(dataset, config):
     # wandb configurations
     run_name = f'DAEGC Model INPUT_DIM: {config["input_dim"]} HIDDEN_DIM: {config["hidden_sizes"]} EMBEDDING_DIM: {config["embedding_size"]} ALPHA: {config["alpha"]} NUM_GAT LAYERS: {config["num_gat_layers"]} NUM_HEADS: {config["num_heads"]}'
 
-    wandb.login(key="", relogin=True)
+    wandb.login(key="57127ebf2a35438d2137d5bed09ca5e4c5191ab9", relogin=True)
 
-    run = wandb.init(name=run_name, reinit=True, project="10701-Project-v2", config=config, tags=["DAEGC"])
+    run = wandb.init(
+        name=run_name,
+        reinit=True,
+        project="10701-Project-v2",
+        config=config,
+        tags=["DAEGC"],
+    )
 
     model_arch = str(model)
     model_arch_dir = os.path.join("model_archs", "daegc")
@@ -110,7 +116,7 @@ def trainer(dataset, config):
         model.parameters(), lr=config["lr"], weight_decay=float(config["weight_decay"])
     )
     scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
-        optimizer, T_0=50, T_mult=1
+        optimizer, T_0=50, T_mult=1, eta_min=1e-5
     )
 
     # data process
