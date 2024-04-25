@@ -48,7 +48,7 @@ def pretrain(dataset, config):
     run = wandb.init(
         name=run_name,
         reinit=True,
-        project="10701-Project-Test",
+        project="10701-Project-v3",
         config=config,
         tags=["GAT"],
     )
