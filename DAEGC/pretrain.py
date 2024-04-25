@@ -48,7 +48,7 @@ def pretrain(dataset, config):
     run = wandb.init(
         name=run_name,
         reinit=True,
-        project="10701-Project-v2",
+        project="10701-Project-Test",
         config=config,
         tags=["GAT"],
     )
@@ -82,7 +82,7 @@ def pretrain(dataset, config):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        scheduler.step()
+        # scheduler.step()
 
         if epoch % 5 == 0:
             model.eval()
@@ -113,6 +113,9 @@ def pretrain(dataset, config):
                     torch.save(
                         model.state_dict(), f"./pretrain/predaegc_best_model.pkl"
                     )
+                    wandb.log({
+                        'best_acc': best_acc
+                    }, step=epoch)
 
     print(f"best model has {best_acc} accuracy")
 

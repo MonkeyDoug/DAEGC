@@ -99,7 +99,7 @@ def trainer(dataset, config):
     run = wandb.init(
         name=run_name,
         reinit=True,
-        project="10701-Project-v2",
+        project="10701-Project-Test",
         config=config,
         tags=["DAEGC"],
     )
@@ -138,6 +138,8 @@ def trainer(dataset, config):
     model.cluster_layer.data = torch.tensor(kmeans.cluster_centers_).to(device)
     eva(y, y_pred, "pretrain")
 
+    best_acc = 0.0
+
     for epoch in range(config["max_epoch"]):
         curr_lr = float(optimizer.param_groups[0]["lr"])
 
@@ -150,6 +152,10 @@ def trainer(dataset, config):
             acc, nmi, ari, f1 = eva(y, q, epoch)
 
             wandb.log({"accuracy": acc, "nmi": nmi, "ari": ari, "f1": f1}, step=epoch)
+            if acc > best_acc:
+                wandb.log({
+                    'best_acc': best_acc
+                }, step=epoch)
 
         model.train()
         A_pred, z, q = model(data, adj, M)
@@ -165,7 +171,7 @@ def trainer(dataset, config):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        scheduler.step(epoch)
+        # scheduler.step(epoch)
 
 
 if __name__ == "__main__":
