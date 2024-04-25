@@ -1,61 +1,29 @@
 import yaml
 import subprocess
 
-MAX_GAT_LAYERS = 4
-
 hidden_sizes = [
-    # [],
-    # [128],
-    # [256],
-    # [512],
-    # [1024],
-    # # [128] * 2,
-    # # [256] * 2,
-    # # [512] * 2,
-    # # [1024] * 2,
-    # [128] * 3,
-    # [256] * 3,
-    # [512] * 3,
-    # [1024] * 3,
-    # # [128] * 4,
-    # # [256] * 4,
-    # # [512] * 4,
-    # # [1024] * 4,
-    # [128] * 5,
-    # [256] * 5,
-    # [512] * 5,
-    # [1024] * 5,
+    [128],
     [256],
+    [384],
+    [512],
     [256, 256],
-    [256, 512],
+    [512, 512],
     [1024, 1024],
-    [256, 512, 256],
-    # [128, 256, 256, 128],
-    # [128, 256, 512, 256, 128],
-    # [128, 256, 512, 512, 256, 128],
-    # [256, 512, 1024, 1024, 512, 256],
 ]
 
-configs_finished = []
-
-all_configs = []
-
-num_configs = 0
-
 for n_clusters in [6]:
-    for update_interval in range(1, 8, 2):
-        for max_epoch in range(100, 201, 100):
+    for update_interval in [1, 2, 5]:
+        for max_epoch in [100, 200]:
             for epoch in [100]:
                 for num_heads in [1, 2, 4]:
-                    for dropout in [0.1, 0.2, 0.5]:
+                    for dropout in [0.0, 0.1, 0.2, 0.5]:
                         for alpha in [0.2]:
                             for pre_lr in [0.005]:
                                 for lr in [0.0001]:
-                                    for embedding_size in [16, 32, 8]:
+                                    for embedding_size in [16, 32, 64]:
                                         curr_hidden_sizes = [
                                             hidden_size + [embedding_size]
                                             for hidden_size in hidden_sizes
-                                            if len(hidden_size) < MAX_GAT_LAYERS
                                         ]
                                         for curr_hidden_size in curr_hidden_sizes:
                                             config = {
@@ -72,7 +40,7 @@ for n_clusters in [6]:
                                                 "alpha": alpha,
                                                 "num_heads": num_heads,
                                                 "num_gat_layers": len(curr_hidden_size),
-                                                "dropout" : dropout
+                                                "dropout": dropout,
                                             }
                                             print(config)
                                             with open("config.yaml", "w") as f:
