@@ -1,22 +1,6 @@
 import yaml
 import subprocess
 
-config = {
-    "dataset": "Citeseer",
-    "epoch": 20,
-    "max_epoch": 100,
-    "pre_lr": 0.005,
-    "lr": 0.0001,
-    "n_clusters": 6,
-    "update_interval": 1,
-    "hidden_sizes": [256, 16],
-    "embedding_size": 16,
-    "weight_decay": "5E-3",
-    "alpha": 0.2,
-    "num_heads": 2,
-    "num_gat_layers": 2,
-}
-
 MAX_GAT_LAYERS = 4
 
 hidden_sizes = [
@@ -63,49 +47,50 @@ for n_clusters in [6]:
         for max_epoch in range(100, 201, 100):
             for epoch in [25, 50]:
                 for num_heads in range(1, 5):
-                    for alpha in [i / 100.0 for i in range(10, 31, 10)]:
-                        for pre_lr in [0.005]:
-                            for lr in [0.0001]:
-                                for embedding_size in [16, 32, 8]:
-                                    curr_hidden_sizes = [
-                                        hidden_size + [embedding_size]
-                                        for hidden_size in hidden_sizes
-                                        if len(hidden_size) < MAX_GAT_LAYERS
-                                    ]
-                                    for curr_hidden_size in curr_hidden_sizes:
-                                        print(config)
-                                        config = {
-                                            "dataset": "Citeseer",
-                                            "epoch": epoch,
-                                            "max_epoch": max_epoch,
-                                            "pre_lr": pre_lr,
-                                            "lr": lr,
-                                            "n_clusters": n_clusters,
-                                            "update_interval": update_interval,
-                                            "hidden_sizes": curr_hidden_size,
-                                            "embedding_size": embedding_size,
-                                            "weight_decay": "5E-3",
-                                            "alpha": alpha,
-                                            "num_heads": num_heads,
-                                            "num_gat_layers": len(curr_hidden_size),
-                                        }
-                                        with open("config.yaml", "w") as f:
-                                            yaml.dump(config, f)
-                                        p = subprocess.run(
-                                            ["python3", "pretrain.py"],
-                                            stdout=subprocess.PIPE,
-                                            stderr=subprocess.PIPE,
-                                            text=True,
-                                        )
-                                        if p != 0:
-                                            print(p.stdout)
-                                            print(p.stderr)
-                                        if p.returncode == 0:
+                    for dropout in [0.1, 0.2, 0.5]:
+                        for alpha in [0.2]:
+                            for pre_lr in [0.005]:
+                                for lr in [0.0001]:
+                                    for embedding_size in [16, 32, 8]:
+                                        curr_hidden_sizes = [
+                                            hidden_size + [embedding_size]
+                                            for hidden_size in hidden_sizes
+                                            if len(hidden_size) < MAX_GAT_LAYERS
+                                        ]
+                                        for curr_hidden_size in curr_hidden_sizes:
+                                            config = {
+                                                "dataset": "Citeseer",
+                                                "epoch": epoch,
+                                                "max_epoch": max_epoch,
+                                                "pre_lr": pre_lr,
+                                                "lr": lr,
+                                                "n_clusters": n_clusters,
+                                                "update_interval": update_interval,
+                                                "hidden_sizes": curr_hidden_size,
+                                                "embedding_size": embedding_size,
+                                                "weight_decay": "5E-3",
+                                                "alpha": alpha,
+                                                "num_heads": num_heads,
+                                                "num_gat_layers": len(curr_hidden_size),
+                                            }
+                                            print(config)
+                                            with open("config.yaml", "w") as f:
+                                                yaml.dump(config, f)
                                             p = subprocess.run(
-                                                ["python3", "daegc.py"],
+                                                ["python3", "pretrain.py"],
+                                                stdout=subprocess.PIPE,
                                                 stderr=subprocess.PIPE,
                                                 text=True,
                                             )
-                                        if p != 0:
-                                            print(p.stdout)
-                                            print(p.stderr)
+                                            if p != 0:
+                                                print(p.stdout)
+                                                print(p.stderr)
+                                            if p.returncode == 0:
+                                                p = subprocess.run(
+                                                    ["python3", "daegc.py"],
+                                                    stderr=subprocess.PIPE,
+                                                    text=True,
+                                                )
+                                            if p != 0:
+                                                print(p.stdout)
+                                                print(p.stderr)

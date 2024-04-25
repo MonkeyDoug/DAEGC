@@ -154,8 +154,6 @@ def trainer(dataset, config):
 
         loss = 10 * kl_loss + re_loss
 
-        print(f"epoch {epoch} : loss {loss}, lr  {curr_lr}")
-
         wandb.log({"loss": loss, "learning_rate": curr_lr}, step=epoch)
 
         optimizer.zero_grad()
@@ -172,7 +170,6 @@ if __name__ == "__main__":
         config = yaml.safe_load(file)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(device)
 
     datasets = utils.get_dataset(config["dataset"])
     dataset = datasets[0]
@@ -190,7 +187,5 @@ if __name__ == "__main__":
     e, dataset_name = config["epoch"], config["dataset"]
     config["pretrain_path"] = f"./pretrain/predaegc_best_model.pkl"
     config["input_dim"] = dataset.num_features
-
-    print(config)
 
     trainer(dataset, config)

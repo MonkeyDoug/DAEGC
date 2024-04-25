@@ -46,7 +46,11 @@ def pretrain(dataset, config):
     wandb.login(key="", relogin=True)
 
     run = wandb.init(
-        name=run_name, reinit=True, project="10701-Project-v2", config=config, tags=["GAT"]
+        name=run_name,
+        reinit=True,
+        project="10701-Project-v2",
+        config=config,
+        tags=["GAT"],
     )
 
     model_arch = str(model)
@@ -119,7 +123,6 @@ if __name__ == "__main__":
         config = yaml.safe_load(file)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(device)
 
     datasets = utils.get_dataset(config["dataset"])
     dataset = datasets[0]
@@ -136,5 +139,4 @@ if __name__ == "__main__":
 
     config["input_dim"] = dataset.num_features
 
-    print(config)
     pretrain(dataset, config)
