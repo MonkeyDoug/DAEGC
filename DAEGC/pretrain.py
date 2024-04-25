@@ -40,7 +40,7 @@ def pretrain(dataset, config):
     )
     if config["scheduler"]:
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, T_max=config["epoch"], eta_min=config["lr"] / 10
+            optimizer, T_max=config["epoch"], eta_min=config["pre_lr"] / 10
         )
 
     run_name = f'GAT PRETRAIN Model INPUT_DIM: {config["input_dim"]} HIDDEN_DIM: {config["hidden_sizes"]} EMBEDDING_DIM: {config["embedding_size"]} ALPHA: {config["alpha"]} NUM_GAT LAYERS: {config["num_gat_layers"]} NUM_HEADS: {config["num_heads"]}'

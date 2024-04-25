@@ -34,7 +34,7 @@ class DAEGC(nn.Module):
         num_heads,
         pretrain_path,
         dropout,
-        add_skip_connection
+        add_skip_connection,
         v=1,
     ):
         super(DAEGC, self).__init__()

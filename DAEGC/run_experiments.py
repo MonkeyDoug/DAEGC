@@ -54,7 +54,7 @@ for add_skip_connection in [False, True]:
                                                     stderr=subprocess.PIPE,
                                                     text=True,
                                                 )
-                                                if p != 0:
+                                                if p.returncode != 0:
                                                     print(p.stdout)
                                                     print(p.stderr)
                                                 if p.returncode == 0:
@@ -63,6 +63,6 @@ for add_skip_connection in [False, True]:
                                                         stderr=subprocess.PIPE,
                                                         text=True,
                                                     )
-                                                if p != 0:
+                                                if p.returncode != 0:
                                                     print(p.stdout)
                                                     print(p.stderr)
