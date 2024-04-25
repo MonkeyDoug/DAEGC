@@ -72,6 +72,7 @@ for n_clusters in [6]:
                                                 "alpha": alpha,
                                                 "num_heads": num_heads,
                                                 "num_gat_layers": len(curr_hidden_size),
+                                                "dropout" : dropout
                                             }
                                             print(config)
                                             with open("config.yaml", "w") as f:
