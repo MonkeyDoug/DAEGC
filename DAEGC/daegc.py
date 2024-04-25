@@ -99,7 +99,7 @@ def trainer(dataset, config):
     run = wandb.init(
         name=run_name,
         reinit=True,
-        project="10701-Project-v3",
+        project=f"10701-Project-{config['dataset']}",
         config=config,
         tags=["DAEGC"],
     )
@@ -112,12 +112,20 @@ def trainer(dataset, config):
         f.write(model_arch)
     wandb.save("model_archs/daegc/daegc_model_arch.txt")
 
+    best_overall_acc = 0.0
+    best_overall_acc_path = os.path.join("best_overall_daegc_acc.txt")
+
+    if os.path.exists(best_overall_acc_path):
+        with open(best_overall_acc_path, "r") as f:
+            best_overall_acc = float(f.read())
+
     optimizer = Adam(
         model.parameters(), lr=config["lr"], weight_decay=float(config["weight_decay"])
     )
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
-        optimizer, T_0=50, T_mult=1, eta_min=1e-5
-    )
+    if config["scheduler"]:
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
+            optimizer, T_0=50, T_mult=1, eta_min=config["lr"] / 10
+        )
 
     # data process
     dataset = utils.data_preprocessing(dataset)
@@ -157,6 +165,10 @@ def trainer(dataset, config):
                     'best_acc': best_acc
                 }, step=epoch)
 
+            if acc > best_overall_acc:
+                best_overall_acc = acc
+                torch.save(model.state_dict(), f"daegc_best_model.pkl")
+
         model.train()
         A_pred, z, q = model(data, adj, M)
         p = target_distribution(Q.detach())
@@ -164,14 +176,18 @@ def trainer(dataset, config):
         kl_loss = F.kl_div(q.log(), p, reduction="batchmean")
         re_loss = F.binary_cross_entropy(A_pred.view(-1), adj_label.view(-1))
 
-        loss = 10 * kl_loss + re_loss
+        loss = config["k"] * kl_loss + re_loss
 
         wandb.log({"loss": loss, "learning_rate": curr_lr}, step=epoch)
 
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        # scheduler.step(epoch)
+        if config["scheduler"]:
+            scheduler.step(epoch)
+
+    with open(best_overall_acc_path, "w") as f:
+        f.write(str(best_overall_acc))
 
 
 if __name__ == "__main__":

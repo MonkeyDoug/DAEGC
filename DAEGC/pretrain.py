@@ -37,9 +37,10 @@ def pretrain(dataset, config):
         lr=config["pre_lr"],
         weight_decay=float(config["weight_decay"]),
     )
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-        optimizer, T_max=config["epoch"]
-    )
+    if config["scheduler"]:
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=config["epoch"], eta_min=config["lr"] / 10
+        )
 
     run_name = f'GAT PRETRAIN Model INPUT_DIM: {config["input_dim"]} HIDDEN_DIM: {config["hidden_sizes"]} EMBEDDING_DIM: {config["embedding_size"]} ALPHA: {config["alpha"]} NUM_GAT LAYERS: {config["num_gat_layers"]} NUM_HEADS: {config["num_heads"]}'
 
@@ -48,7 +49,7 @@ def pretrain(dataset, config):
     run = wandb.init(
         name=run_name,
         reinit=True,
-        project="10701-Project-v3",
+        project=f"10701-Project-{config['dataset']}",
         config=config,
         tags=["GAT"],
     )
@@ -60,6 +61,13 @@ def pretrain(dataset, config):
     with open("model_archs/gat_pretrain/gat_model_arch.txt", "w") as f:
         f.write(model_arch)
     wandb.save("model_archs/gat_pretrain/gat_model_arch.txt")
+
+    best_overall_acc = 0.0
+    best_overall_acc_path = os.path.join("best_overall_gat_acc.txt")
+
+    if os.path.exists(best_overall_acc_path):
+        with open(best_overall_acc_path, "r") as f:
+            best_overall_acc = float(f.read())
 
     # data process
     dataset = utils.data_preprocessing(dataset)
@@ -82,7 +90,8 @@ def pretrain(dataset, config):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        # scheduler.step()
+        if config["scheduler"]:
+            scheduler.step()
 
         if epoch % 5 == 0:
             model.eval()
@@ -116,6 +125,15 @@ def pretrain(dataset, config):
                     wandb.log({
                         'best_acc': best_acc
                     }, step=epoch)
+
+                if acc > best_overall_acc:
+                    best_overall_acc = acc
+                    torch.save(
+                        model.state_dict(), f"gat_best_model.pkl"
+                    )
+
+    with open(best_overall_acc_path, "w") as f:
+        f.write(str(best_overall_acc))
 
     print(f"best model has {best_acc} accuracy")
 
