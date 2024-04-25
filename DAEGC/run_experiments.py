@@ -21,7 +21,7 @@ for add_skip_connection in [False, True]:
                             for dropout in [0.0, 0.1, 0.2, 0.5]:
                                 for alpha in [0.2]:
                                     for num_heads in [1, 2, 4]:
-                                        for embedding_size in [16, 32, 64]:
+                                        for embedding_size in [32, 16, 64]:
                                             curr_hidden_sizes = [
                                                 hidden_size + [embedding_size]
                                                 for hidden_size in hidden_sizes
