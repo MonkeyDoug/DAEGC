@@ -1,25 +1,25 @@
+import sys
 import yaml
 import subprocess
 
 hidden_sizes = [
     [128],
     [256],
-    [384],
     [512],
+    [128, 128],
     [256, 256],
     [512, 512],
-    [1024, 1024],
 ]
 
-for n_clusters in [6]:
-    for update_interval in [1, 2, 5]:
-        for max_epoch in [100, 200]:
-            for epoch in [100]:
-                for num_heads in [1, 2, 4]:
-                    for dropout in [0.0, 0.1, 0.2, 0.5]:
-                        for alpha in [0.2]:
-                            for pre_lr in [0.005]:
-                                for lr in [0.0001]:
+for scheduler in [True, False]:
+    for weight_decay in ["5E-4", "5E-3"]:
+        for update_interval in [1, 2, 5]:
+            for max_epoch in [100, 200]:
+                for epoch in [100]:
+                    for k in [5, 10, 15]:
+                        for dropout in [0.0, 0.1, 0.2, 0.5]:
+                            for alpha in [0.2]:
+                                for num_heads in [1, 2, 4]:
                                     for embedding_size in [16, 32, 64]:
                                         curr_hidden_sizes = [
                                             hidden_size + [embedding_size]
@@ -27,20 +27,21 @@ for n_clusters in [6]:
                                         ]
                                         for curr_hidden_size in curr_hidden_sizes:
                                             config = {
-                                                "dataset": "Citeseer",
+                                                "dataset": sys.argv[1],
                                                 "epoch": epoch,
                                                 "max_epoch": max_epoch,
-                                                "pre_lr": pre_lr,
-                                                "lr": lr,
-                                                "n_clusters": n_clusters,
                                                 "update_interval": update_interval,
                                                 "hidden_sizes": curr_hidden_size,
                                                 "embedding_size": embedding_size,
-                                                "weight_decay": "5E-3",
+                                                "weight_decay": "5E-4",
                                                 "alpha": alpha,
                                                 "num_heads": num_heads,
-                                                "num_gat_layers": len(curr_hidden_size),
+                                                "num_gat_layers": len(
+                                                    curr_hidden_size
+                                                ),
                                                 "dropout": dropout,
+                                                "k": k,
+                                                "scheduler" : scheduler
                                             }
                                             print(config)
                                             with open("config.yaml", "w") as f:
