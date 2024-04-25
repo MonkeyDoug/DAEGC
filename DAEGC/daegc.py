@@ -1,6 +1,7 @@
 import os
 import argparse
 import numpy as np
+
 import wandb
 import yaml
 
@@ -32,6 +33,7 @@ class DAEGC(nn.Module):
         num_gat_layers,
         num_heads,
         pretrain_path,
+        dropout,
         v=1,
     ):
         super(DAEGC, self).__init__()
@@ -40,7 +42,13 @@ class DAEGC(nn.Module):
 
         # get pretrain model
         self.gat = GAT(
-            num_features, hidden_size, embedding_size, num_gat_layers, num_heads, alpha
+            num_features,
+            hidden_size,
+            embedding_size,
+            num_gat_layers,
+            num_heads,
+            alpha,
+            dropout,
         )
         self.gat.load_state_dict(torch.load(pretrain_path, map_location="cpu"))
 
@@ -79,6 +87,7 @@ def trainer(dataset, config):
         num_heads=config["num_heads"],
         num_gat_layers=config["num_gat_layers"],
         pretrain_path=config["pretrain_path"],
+        dropout=config["dropout"],
     ).to(device)
     print(model)
 
@@ -87,7 +96,7 @@ def trainer(dataset, config):
 
     wandb.login(key="", relogin=True)
 
-    run = wandb.init(name=run_name, reinit=True, project="10701-Project", config=config, tags=["DAEGC"])
+    run = wandb.init(name=run_name, reinit=True, project="10701-Project-v2", config=config, tags=["DAEGC"])
 
     model_arch = str(model)
     model_arch_dir = os.path.join("model_archs", "daegc")
@@ -100,8 +109,9 @@ def trainer(dataset, config):
     optimizer = Adam(
         model.parameters(), lr=config["lr"], weight_decay=float(config["weight_decay"])
     )
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max',
-                                                           factor=0.5, patience=2, min_lr=1E-8)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
+        optimizer, T_0=50, T_mult=1
+    )
 
     # data process
     dataset = utils.data_preprocessing(dataset)
@@ -125,8 +135,8 @@ def trainer(dataset, config):
     for epoch in range(config["max_epoch"]):
         curr_lr = float(optimizer.param_groups[0]["lr"])
 
-        model.train()
         if epoch % config["update_interval"] == 0:
+            model.eval()
             # update_interval
             A_pred, z, Q = model(data, adj, M)
 
@@ -135,6 +145,7 @@ def trainer(dataset, config):
 
             wandb.log({"accuracy": acc, "nmi": nmi, "ari": ari, "f1": f1}, step=epoch)
 
+        model.train()
         A_pred, z, q = model(data, adj, M)
         p = target_distribution(Q.detach())
 
@@ -143,12 +154,14 @@ def trainer(dataset, config):
 
         loss = 10 * kl_loss + re_loss
 
+        print(f"epoch {epoch} : loss {loss}, lr  {curr_lr}")
+
         wandb.log({"loss": loss, "learning_rate": curr_lr}, step=epoch)
 
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        scheduler.step(acc)
+        scheduler.step(epoch)
 
 
 if __name__ == "__main__":
