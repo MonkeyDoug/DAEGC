@@ -45,8 +45,8 @@ num_configs = 0
 for n_clusters in [6]:
     for update_interval in range(1, 8, 2):
         for max_epoch in range(100, 201, 100):
-            for epoch in [25, 50]:
-                for num_heads in range(1, 5):
+            for epoch in [100]:
+                for num_heads in [1, 2, 4]:
                     for dropout in [0.1, 0.2, 0.5]:
                         for alpha in [0.2]:
                             for pre_lr in [0.005]:
