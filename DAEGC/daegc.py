@@ -34,6 +34,7 @@ class DAEGC(nn.Module):
         num_heads,
         pretrain_path,
         dropout,
+        add_skip_connection
         v=1,
     ):
         super(DAEGC, self).__init__()
@@ -49,6 +50,7 @@ class DAEGC(nn.Module):
             num_heads,
             alpha,
             dropout,
+            add_skip_connection
         )
         self.gat.load_state_dict(torch.load(pretrain_path, map_location="cpu"))
 
@@ -88,6 +90,7 @@ def trainer(dataset, config):
         num_gat_layers=config["num_gat_layers"],
         pretrain_path=config["pretrain_path"],
         dropout=config["dropout"],
+        add_skip_connection=config["add_skip_connection"],
     ).to(device)
     print(model)
 

@@ -29,6 +29,7 @@ def pretrain(dataset, config):
         num_heads=config["num_heads"],
         num_gat_layers=config["num_gat_layers"],
         dropout=config["dropout"],
+        add_skip_connection=config["add_skip_connection"],
     ).to(device)
     print(model)
 

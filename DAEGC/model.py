@@ -16,6 +16,7 @@ class GAT(nn.Module):
         num_heads: int,
         alpha: float,
         dropout: float,
+        add_skip_connection : bool,
     ) -> None:
         assert len(hidden_sizes) == num_gat_layers
         super(GAT, self).__init__()
@@ -24,8 +25,6 @@ class GAT(nn.Module):
         self.embedding_size = embedding_size
         self.num_gat_layers = num_gat_layers
         self.alpha = alpha
-
-        self.lin_proj = nn.Linear(hidden_sizes[-1] * num_heads, embedding_size)
 
         layer_sizes = [num_features] + hidden_sizes
 
@@ -37,7 +36,7 @@ class GAT(nn.Module):
                     num_heads=num_heads,
                     concat=True if i < num_gat_layers - 1 else False,
                     activation=nn.ELU() if i < num_gat_layers - 1 else None,
-                    add_skip_connection=False,
+                    add_skip_connection=add_skip_connection,
                     dropout=dropout,
                 )
                 for i in range(num_gat_layers)
