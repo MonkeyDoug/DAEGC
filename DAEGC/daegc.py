@@ -164,6 +164,7 @@ def trainer(dataset, config):
 
             wandb.log({"accuracy": acc, "nmi": nmi, "ari": ari, "f1": f1}, step=epoch)
             if acc > best_acc:
+                best_acc = acc
                 wandb.log({
                     'best_acc': best_acc
                 }, step=epoch)
