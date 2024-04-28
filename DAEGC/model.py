@@ -48,10 +48,6 @@ class GAT(nn.Module):
         for i in range(1, self.num_gat_layers):
             h = self.gat_net[i](h, adj, M)
 
-        # Comment out to average
-        # (N, NH * H_LAST) -> (N, Embedding_Size)
-        # h = self.lin_proj(h)
-
         # z = (N, Embedding_Size)
         z = F.normalize(h, p=2, dim=1)
         A_pred = self.dot_product_decode(z)
