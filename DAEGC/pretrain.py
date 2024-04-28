@@ -1,18 +1,13 @@
 import os
-import argparse
-import numpy as np
 
 import wandb
 import yaml
 
 from sklearn.cluster import KMeans
-from sklearn.preprocessing import normalize
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn.parameter import Parameter
-from torch.optim import Adam, AdamW
+from torch.optim import AdamW
 
 import utils
 from model import GAT

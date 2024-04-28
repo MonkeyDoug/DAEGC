@@ -59,7 +59,7 @@ for add_skip_connection in [False, True]:
                                                     print(p.stderr)
                                                 if p.returncode == 0:
                                                     p = subprocess.run(
-                                                        ["python3", "daegc.py"],
+                                                        ["python3", "madgc.py"],
                                                         stderr=subprocess.PIPE,
                                                         text=True,
                                                     )
